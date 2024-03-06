@@ -1,15 +1,16 @@
 using Microsoft.EntityFrameworkCore;
 using ShoppingCart.Data;
+using ShoppingCart.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddControllersWithViews();
-
 builder.Services.AddDbContext<DataContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.UseSqlServer(builder.Configuration["ConnectionStrings:DefaultConnection"]);
 });
+
+// Add services to the container.
+builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
@@ -25,10 +26,15 @@ app.UseRouting();
 app.UseAuthorization();
 
 app.MapControllerRoute(
+    name: "products",
+    pattern: "/products/{categorySlug?}",
+    defaults: new { controller = "Products", action = "Index" });
+
+app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 var context = app.Services.CreateScope().ServiceProvider.GetRequiredService<DataContext>();
-SeedData.Initialize(context);
+//SeedData.Initialize(context);
 
 app.Run();
